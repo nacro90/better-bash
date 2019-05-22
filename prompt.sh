@@ -1,10 +1,11 @@
-RED="\[\e[0;36m\]"
+RED="\[\e[0;31m\]"
 GRAY="\[\e[0;37m\]"
 DARKGRAY="\[\e[0;90m\]"
-YELLOW="\[\e[0;33m\]"
+YELLOW_BOLD="\[\e[1;33m\]"
 BLUE="\[\e[0;34m\]"
 PURPLE="\[\e[0;35m\]"
 GREEN="\[\e[0;32m\]"
+GREEN_BOLD="\[\e[1;32m\]"
 WHITE="\[\e[0;37m\]"
 WHITE_BOLD="\[\e[1;37m\]"
 BLOODRED="\[\e[1;31m\]"
@@ -13,102 +14,82 @@ LIGHT_CYAN="\[\e[1;96m\]"
 LIGHT_GREEN="\[\e[1;32m\]"
 TXTRST="\[\e[0m\]"
 
-DOWNBAR='\342\224\214'
-HORBAR='\342\224\200'
-UPBAR='\342\224\224'
-HORBARPLUG='$'
-# HORBARPLUG='\342\225\274'
-CROSS='\342\234\227'
-
-function parse_git_dirty {
-  [[ $(git status 2> /dev/null | tail -n1) != "nothing to commit, working directory clean" ]] && echo "*"
-}
+DELIMETER=' '
+PROMPT='›'
+EMPTYSET='∅'
+FAILMARK='!'
+BULLET='•'
 
 function parse_git_in_rebase {
-    [[ -d .git/rebase-apply ]] && echo " REBASING"
+    if [[ -d .git/rebase-apply ]]; then
+        echo " REBASING"
+    fi
 }
 
 function parse_git_dirty {
-    [[ $(git status 2> /dev/null | tail -n1) != "nothing to commit (working directory clean)" ]] && echo "*"
+    git_output=$(git status | tail -1 | cut -d " " -f-3 | cut -d "," -f1)
+    if [[ $git_output != "nothing to commit" ]]; then
+        echo " $BULLET"
+    fi
 }
 
 function parse_git_branch {
-    branch=$(git branch 2> /dev/null | grep "*" | sed -e s/^..//g)
-    if [[ -z ${branch} ]]; then
-        return
+    branch=$(git status | head -1 | cut -d " " -f3-)
+    if [[ -n $branch ]]; then
+        echo $branch$BLOODRED"$(parse_git_dirty)"$(parse_git_in_rebase)
     fi
-    echo ${branch}$(parse_git_dirty)$(parse_git_in_rebase)
 }
 
 function git_module {
     if [[ $(git status 2> /dev/null) ]];then
-        echo $WHITE$HORBAR[$WHITE_BOLD$(parse_git_branch)$WHITE];
+        echo $DARKGRAY"$DELIMETER"[$GREEN$(parse_git_branch)$DARKGRAY];
     fi
  }
 
-function file_module {
-    dircount=$(ls -A1F | grep "\/$" | wc -l)
-    filecount=$(ls -A1F | grep "\/$" -v | wc -l)
-
-    if [ 0 -lt ${dircount} ] && [ 0 -lt ${filecount} ]; then
-        echo $HORBAR[$YELLOW$dircount"d"$WHITE\|$YELLOW$filecount"f"$WHITE]
+function emptiness_module {
+    endpcount=$(ls -A1F | wc -l)
+    if [[ 0 -eq ${endpcount} ]]; then
+        echo $TXTRST"$DELIMETER"$YELLOW_BOLD$EMPTYSET
     fi
-
-    if [ 0 -lt ${dircount} ] && [ 0 -eq ${filecount} ]; then
-        echo $HORBAR[$YELLOW$dircount"d"$WHITE]
-    fi
-
-    if [ 0 -eq ${dircount} ] && [ 0 -lt ${filecount} ]; then
-        echo $HORBAR[$YELLOW$filecount"f"$WHITE]
-    fi
-
-    if [ 0 -eq ${dircount} ] && [ 0 -eq ${filecount} ]; then
-        echo $HORBAR[$YELLOW"empty"$WHITE]
-    fi
-    # echo $HORBAR[$BLUE$(ls | wc -l) files, $(ls -lah | grep -m 1 total | sed 's/total //')$WHITE]
 }
 
 function venv_module {
     if [[ -n ${VIRTUAL_ENV} ]]; then
-        echo $HORBAR[$WHITE_BOLD$(basename "$VIRTUAL_ENV")$WHITE]
+        echo $WHITE"$DELIMETER"\($WHITE_BOLD$(basename "$VIRTUAL_ENV")$WHITE\)
     fi
 }
 
 function end_module {
-    echo "\n"$WHITE$UPBAR$HORBAR$HORBARPLUG $TXTRST
-}
-
-function begin_module {
-    echo $WHITE$DOWNBAR
+    echo "\n $WHITE$PROMPT $TXTRST"
 }
 
 function retval_module {
-    [[ $? != 0 ]] && echo [$BLOODRED$CROSS$WHITE]
-}
-
-function user_module {
-     echo $HORBAR[$(if [[ ${EUID} == 0 ]]; then echo $BLOODRED'\h'; else echo $YELLOW'\u'$GRAY'@'$LIGHT_CYAN'\h'; fi)$WHITE]
+    if [ $exitcode != 0 ] && [ $exitcode != 148 ]; then
+        echo "$DELIMETER$BLOODRED$FAILMARK"
+    fi
 }
 
 function location_module {
-    echo $HORBAR[$LIGHT_CYAN'\w'$WHITE]
+    echo $TXTRST"$DELIMETER"$LIGHT_CYAN'\w'
 }
 
 function jobs_module {
     jcount=$(jobs | wc -l)
-    if [[ 1 -lt ${jcount} ]]; then
-        echo $HORBAR[$BLOODRED"\j jobs"$WHITE]
-    elif [[ 1 -eq ${jcount} ]]; then
-        echo $HORBAR[$BLOODRED"\j job"$WHITE]
+    if [[ 1 -lt $jcount ]]; then
+        echo $TXTRST"$DELIMETER"$BLOODRED"\j jobs"
+    elif [[ 1 -eq $jcount ]]; then
+        echo $TXTRST"$DELIMETER"$BLOODRED"\j job"
     fi
 }
 
 function time_module {
-    echo $DARKGRAY$HORBAR['\A']$WHITE
+    echo $DARKGRAY"$DELIMETER"'\A'
 }
 
 function set_bash_prompt {
-    PS1=$(begin_module)$(retval_module)$(venv_module)$(jobs_module)$(location_module)$(file_module)$(git_module)$(time_module)$(end_module)
+    exitcode="$?"
+    PS1='\n'$(retval_module)$(venv_module)$(jobs_module)$(location_module)
+    PS1+=$(emptiness_module)$(git_module)$(time_module)$(end_module)
 }
 
 PROMPT_COMMAND=set_bash_prompt
