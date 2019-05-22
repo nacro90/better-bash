@@ -16,6 +16,7 @@ TXTRST="\[\e[0m\]"
 
 DELIMETER=' '
 PROMPT='›'
+CONTINUED='↪︎'
 EMPTYSET='∅'
 FAILMARK='!'
 BULLET='•'
@@ -90,6 +91,7 @@ function set_bash_prompt {
     exitcode="$?"
     PS1='\n'$(retval_module)$(venv_module)$(jobs_module)$(location_module)
     PS1+=$(emptiness_module)$(git_module)$(time_module)$(end_module)
+    PS2="$WHITE$CONTINUED  $TXTRST"
 }
 
 PROMPT_COMMAND=set_bash_prompt
