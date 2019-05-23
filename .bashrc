@@ -126,6 +126,9 @@ fi
 
 mdp() { pandoc "$1" | lynx -stdin; }
 
+if [ -f ~/.bash/exports.sh ]; then
+    . ~/.bash/exports.sh
+fi
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
