@@ -56,7 +56,7 @@ function emptiness_module {
 
 function venv_module {
     if [[ -n ${VIRTUAL_ENV} ]]; then
-        echo $WHITE"$DELIMETER"\($WHITE_BOLD$(basename "$VIRTUAL_ENV")$WHITE\)
+        echo $DARKGRAY"$DELIMETER"\($WHITE_BOLD$(basename "$VIRTUAL_ENV")$DARKGRAY\)
     fi
 }
 
