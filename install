@@ -1,0 +1,19 @@
+BETTERBASH=~/.betterbash
+
+if [[ -f ~/.bashrc ]]; then
+  mv ~/.bashrc ~/.bashrc.bak
+fi
+
+if [[ -f ~/.bash_aliases ]]; then
+  mv ~/.bash_aliases ~/.bash_aliases.bak
+fi
+
+ln -s $BETTERBASH/.bashrc ~/.bashrc
+ln -s $BETTERBASH/.bash_aliases ~/.bash_aliases
+
+. ~/.bashrc
+. ~/.bash_aliases
+
+cd
+clear
+echo "Welcome to your new shell"

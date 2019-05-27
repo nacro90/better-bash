@@ -116,24 +116,35 @@ if ! shopt -oq posix; then
   fi
 fi
 
+# FZF
+
+if [ -f ~/.fzf.bash ]; then
+    source ~/.fzf.bash
+fi
+
 # User specified commands edited by orcan
+
+BETTER_BASH=~/.betterbash/
+PROMPT=$BETTER_BASH/prompt.sh
+EXPORTS=$BETTER_BASH/exports.sh
+LSCOLORS=$BETTER_BASH/lscolors.sh
 
 # Custom bash prompt
 
-if [ -f ~/.bash/prompt.sh ]; then
-    . ~/.bash/prompt.sh
+if [ -f $PROMPT ]; then
+    source $PROMPT
 fi
 
-mdp() { pandoc "$1" | lynx -stdin; }
+# Exports
 
-if [ -f ~/.bash/exports.sh ]; then
-    . ~/.bash/exports.sh
+if [ -f $EXPORTS ]; then
+    source $EXPORTS
 fi
-
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 # Custom ls colors
 
-if [ -f ~/.bash/lscolors.sh ]; then
-    . ~/.bash/lscolors.sh
+if [ -f $LSCOLORS ]; then
+    source $LSCOLORS
 fi
+
+
